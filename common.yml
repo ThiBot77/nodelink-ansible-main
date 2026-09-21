@@ -1,0 +1,7 @@
+---
+- name: Apply the common baseline
+  hosts: "{{ target | default('Linux-Nodelink') }}"
+  gather_facts: false
+  become: true
+  roles:
+    - common
