@@ -1,0 +1,50 @@
+---
+- name: Gather system facts
+  ansible.builtin.setup:
+    gather_subset:
+      - "!all"
+      - "!min"
+      - distribution
+      - kernel
+  register: software_versions_facts
+  ignore_unreachable: true
+
+- name: Collect installed versions
+  ansible.builtin.shell: |
+    set -o pipefail
+    {% if item.binary is defined %}
+    command -v {{ item.binary }} >/dev/null 2>&1 || exit 127
+    {% endif %}
+    {{ item.command }} 2>&1 | head -n 1
+  args:
+    executable: /bin/bash
+  register: software_versions_raw
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: not (software_versions_facts.unreachable | default(false))
+  loop: "{{ software_versions_list }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Build the version table
+  ansible.builtin.set_fact:
+    software_versions: >-
+      {{ software_versions | default({
+           'os': ansible_facts.distribution | default(software_versions_absent),
+           'os_version': ansible_facts.distribution_version | default(software_versions_absent),
+           'kernel': ansible_facts.kernel | default(software_versions_absent),
+           'arch': ansible_facts.architecture | default(software_versions_absent),
+         }) | combine({
+           item.item.name: ((item.stdout | regex_findall(item.item.regex | default(software_versions_regex)))
+                            + [software_versions_absent]) | first
+         }) }}
+  when: not (software_versions_facts.unreachable | default(false))
+  loop: "{{ software_versions_raw.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+
+- name: Show collected versions
+  ansible.builtin.debug:
+    msg: "{{ software_versions }}"
+  when: software_versions is defined

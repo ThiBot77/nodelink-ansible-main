@@ -1,0 +1,67 @@
+---
+software_versions_regex: '[0-9]+(?:\.[0-9]+)+'
+software_versions_absent: "-"
+
+software_versions_list:
+  - name: docker
+    binary: docker
+    command: docker --version
+  - name: docker-compose
+    binary: docker
+    command: docker compose version
+  - name: containerd
+    binary: containerd
+    command: containerd --version
+  - name: apache
+    command: apache2 -v 2>/dev/null || httpd -v
+  - name: nginx
+    binary: nginx
+    command: nginx -v
+  - name: haproxy
+    binary: haproxy
+    command: haproxy -v
+  - name: mariadb
+    binary: mariadb
+    command: mariadb --version
+    regex: 'Distrib ([0-9][0-9.]*)'
+  - name: mysql
+    binary: mysql
+    command: mysql --version
+    regex: 'Ver ([0-9][0-9.]*)'
+  - name: postgresql
+    binary: psql
+    command: psql --version
+  - name: redis
+    binary: redis-server
+    command: redis-server --version
+  - name: mongodb
+    binary: mongod
+    command: mongod --version
+  - name: php
+    binary: php
+    command: php --version
+  - name: python3
+    binary: python3
+    command: python3 --version
+  - name: node
+    binary: node
+    command: node --version
+  - name: java
+    binary: java
+    command: java -version
+  - name: openssh
+    binary: ssh
+    command: ssh -V
+    regex: 'OpenSSH_([0-9][^, ]*)'
+  - name: openssl
+    binary: openssl
+    command: openssl version
+  - name: git
+    binary: git
+    command: git --version
+  - name: certbot
+    binary: certbot
+    command: certbot --version
+  - name: fail2ban
+    binary: fail2ban-server
+    command: fail2ban-server --version
