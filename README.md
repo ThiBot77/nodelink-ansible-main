@@ -1,4 +1,4 @@
-# nodelink-ansible
+# NodeLink Ansible
 
 Ansible repository for the NodeLink infrastructure
 
