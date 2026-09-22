@@ -23,7 +23,7 @@ ansible-playbook playbook.yml --syntax-check
 Test connectivity:
 
 ```bash
-ansible Linux-Nodelink -m ping
+ansible linux -m ping
 ```
 
 Restrict to a host or group 

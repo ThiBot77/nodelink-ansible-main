@@ -1,6 +1,6 @@
 ---
 - name: Collect software versions
-  hosts: "{{ target | default('Linux-Nodelink') }}"
+  hosts: "{{ target | default('linux') }}"
   gather_facts: false
   become: false
   roles:
