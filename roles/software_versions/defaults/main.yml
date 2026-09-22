@@ -65,3 +65,15 @@ software_versions_list:
   - name: fail2ban
     binary: fail2ban-server
     command: fail2ban-server --version
+  - name: zabbix-agent
+    binary: zabbix_agentd
+    command: zabbix_agentd -V
+  - name: zabbix-agent2
+    binary: zabbix_agent2
+    command: zabbix_agent2 -V
+  - name: zabbix-proxy
+    binary: zabbix_proxy
+    command: zabbix_proxy -V
+  - name: zabbix-server
+    binary: zabbix_server
+    command: zabbix_server -V

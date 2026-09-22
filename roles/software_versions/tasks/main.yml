@@ -28,6 +28,7 @@
     - name: Collect installed versions
       ansible.builtin.shell: |
         set -o pipefail
+        export PATH="$PATH:/usr/sbin:/sbin"
         {% if item.binary is defined %}
         command -v {{ item.binary }} >/dev/null 2>&1 || exit 127
         {% endif %}
