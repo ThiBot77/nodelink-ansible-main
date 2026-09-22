@@ -1,0 +1,7 @@
+---
+- name: Apply pending patches
+  hosts: "{{ target | default('linux') }}"
+  gather_facts: false
+  become: true
+  roles:
+    - maintenance

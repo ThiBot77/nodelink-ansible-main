@@ -1,0 +1,13 @@
+---
+# Le redémarrage n'a lieu que si cette variable vaut true
+maintenance_reboot: false
+maintenance_reboot_only_if_required: true
+maintenance_reboot_timeout: 600
+
+maintenance_upgrade: safe
+maintenance_update_cache: true
+maintenance_cache_valid_time: 3600
+maintenance_autoremove: true
+maintenance_autoclean: true
+
+maintenance_dpkg_log: /var/log/dpkg.log

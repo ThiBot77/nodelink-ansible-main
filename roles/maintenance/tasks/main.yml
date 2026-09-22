@@ -1,0 +1,79 @@
+---
+- name: Gather system facts
+  ansible.builtin.setup:
+    gather_subset:
+      - "!all"
+      - "!min"
+      - distribution
+
+- name: Check the distribution is supported
+  ansible.builtin.assert:
+    that: ansible_facts.os_family == "Debian"
+    fail_msg: "This role only supports Debian-based systems, got {{ ansible_facts.os_family }}"
+
+- name: Update the package cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: "{{ maintenance_cache_valid_time }}"
+  when: maintenance_update_cache | bool
+
+- name: Record the start time
+  ansible.builtin.command: date "+%Y-%m-%d %H:%M:%S"
+  register: maintenance_started_at
+  changed_when: false
+  check_mode: false
+
+- name: Apply pending patches
+  ansible.builtin.apt:
+    upgrade: "{{ maintenance_upgrade }}"
+  register: maintenance_upgraded
+
+- name: Remove obsolete packages
+  ansible.builtin.apt:
+    autoremove: true
+    purge: false
+  when: maintenance_autoremove | bool
+
+- name: Clean the local package cache
+  ansible.builtin.apt:
+    autoclean: true
+  when: maintenance_autoclean | bool
+
+- name: Collect the package changes
+  ansible.builtin.command:
+    argv:
+      - awk
+      - -v
+      - since={{ maintenance_started_at.stdout }}
+      - >-
+        ($1 " " $2) >= since && ($3 == "upgrade" || $3 == "install")
+        { print $4, ($5 == "<none>" ? "(new)" : $5), "->", $6 }
+      - "{{ maintenance_dpkg_log }}"
+  register: maintenance_changes
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Report the package changes
+  ansible.builtin.debug:
+    msg: "{{ maintenance_changes.stdout_lines | default([]) | ternary(maintenance_changes.stdout_lines, ['no package changed']) }}"
+
+- name: Check whether a reboot is pending
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: maintenance_reboot_marker
+
+- name: Report the maintenance outcome
+  ansible.builtin.debug:
+    msg: >-
+      patched={{ maintenance_upgraded.changed }}
+      reboot_pending={{ maintenance_reboot_marker.stat.exists }}
+      reboot_allowed={{ maintenance_reboot | bool }}
+
+- name: Reboot the host
+  ansible.builtin.reboot:
+    reboot_timeout: "{{ maintenance_reboot_timeout }}"
+    msg: Reboot triggered by the Ansible maintenance role
+  when:
+    - maintenance_reboot | bool
+    - maintenance_reboot_marker.stat.exists or not (maintenance_reboot_only_if_required | bool)
