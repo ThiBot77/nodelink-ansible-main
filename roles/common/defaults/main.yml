@@ -2,6 +2,13 @@
 common_motd_path: /etc/motd
 common_motd_org: NodeLink
 
+common_timezone: Europe/Paris
+
+common_svc_user: svc_ansible
+common_svc_shell: /bin/bash
+common_svc_pubkey: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINS1Jh0bb/z05Di0Ej7g2x9rN0Qhj5ziuxjv2f5m6q8w svc_ansible@nodelink"
+common_svc_sudoers: /etc/sudoers.d/svc_ansible
+
 common_apt_cache_valid_time: 3600
 common_chrony_package: chrony
 common_chrony_service: chrony
@@ -13,3 +20,7 @@ common_ntp_servers:
   - 3.debian.pool.ntp.org
 # Corrige d'un coup un écart de plus d'une seconde sur les trois premières mesures
 common_ntp_makestep: 1.0 3
+
+common_ntp_sync_check: true
+common_ntp_sync_tries: 30
+common_ntp_sync_max_offset: 0.5

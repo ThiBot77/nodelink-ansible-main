@@ -1,4 +1,38 @@
 ---
+- name: Ensure the service account exists
+  ansible.builtin.user:
+    name: "{{ common_svc_user }}"
+    shell: "{{ common_svc_shell }}"
+    create_home: true
+    # '*' interdit le mot de passe sans verrouiller le compte, que sshd refuserait
+    password: "*"
+    state: present
+
+- name: Create the service account ssh directory
+  ansible.builtin.file:
+    path: "/home/{{ common_svc_user }}/.ssh"
+    state: directory
+    owner: "{{ common_svc_user }}"
+    group: "{{ common_svc_user }}"
+    mode: "0700"
+
+- name: Install the service account key
+  ansible.builtin.copy:
+    content: "{{ common_svc_pubkey }}\n"
+    dest: "/home/{{ common_svc_user }}/.ssh/authorized_keys"
+    owner: "{{ common_svc_user }}"
+    group: "{{ common_svc_user }}"
+    mode: "0600"
+
+- name: Grant passwordless sudo to the service account
+  ansible.builtin.copy:
+    content: "{{ common_svc_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    dest: "{{ common_svc_sudoers }}"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s
+
 - name: Deploy the MOTD banner
   ansible.builtin.template:
     src: motd.j2
@@ -6,6 +40,10 @@
     owner: root
     group: root
     mode: "0644"
+
+- name: Set the system timezone
+  community.general.timezone:
+    name: "{{ common_timezone }}"
 
 - name: Install chrony
   ansible.builtin.apt:
@@ -29,3 +67,18 @@
     name: "{{ common_chrony_service }}"
     state: started
     enabled: true
+
+- name: Apply pending chrony changes before checking the clock
+  ansible.builtin.meta: flush_handlers
+
+- name: Wait for the clock to synchronise
+  ansible.builtin.command: >-
+    chronyc waitsync {{ common_ntp_sync_tries }} {{ common_ntp_sync_max_offset }}
+  register: common_ntp_sync
+  changed_when: false
+  check_mode: false
+  when: common_ntp_sync_check | bool
+
+- name: Report the clock status
+  ansible.builtin.debug:
+    msg: "{{ common_ntp_sync.stdout_lines | default(['sync check skipped']) }}"
