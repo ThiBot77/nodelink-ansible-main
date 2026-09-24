@@ -1,3 +1,15 @@
 ---
 common_motd_path: /etc/motd
 common_motd_org: NodeLink
+
+common_apt_cache_valid_time: 3600
+common_chrony_package: chrony
+common_chrony_service: chrony
+common_chrony_conf: /etc/chrony/chrony.conf
+common_ntp_servers:
+  - 0.debian.pool.ntp.org
+  - 1.debian.pool.ntp.org
+  - 2.debian.pool.ntp.org
+  - 3.debian.pool.ntp.org
+# Corrige d'un coup un écart de plus d'une seconde sur les trois premières mesures
+common_ntp_makestep: 1.0 3

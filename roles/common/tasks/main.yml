@@ -6,3 +6,26 @@
     owner: root
     group: root
     mode: "0644"
+
+- name: Install chrony
+  ansible.builtin.apt:
+    name: "{{ common_chrony_package }}"
+    state: present
+    update_cache: true
+    cache_valid_time: "{{ common_apt_cache_valid_time }}"
+
+- name: Configure the NTP sources
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: "{{ common_chrony_conf }}"
+    owner: root
+    group: root
+    mode: "0644"
+    backup: true
+  notify: Restart chrony
+
+- name: Enable and start chrony
+  ansible.builtin.service:
+    name: "{{ common_chrony_service }}"
+    state: started
+    enabled: true
