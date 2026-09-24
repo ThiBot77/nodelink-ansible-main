@@ -1,0 +1,7 @@
+---
+- name: Deploy the Action1 agent
+  hosts: "{{ target | default('linux') }}"
+  gather_facts: false
+  become: true
+  roles:
+    - action1

@@ -1,0 +1,12 @@
+---
+# Le paquet porte le certificat et la clé privée du tenant : jamais dans git
+action1_deb_src: "{{ role_path }}/files/action1_agent.deb"
+action1_deb_dest: /root/action1_agent.deb
+
+action1_package: action1-agent
+action1_version: 1.67.82.1
+action1_service: action1_agent
+action1_dependencies:
+  - zip
+  - curl
+action1_apt_cache_valid_time: 3600

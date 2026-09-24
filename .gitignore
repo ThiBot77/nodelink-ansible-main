@@ -18,3 +18,6 @@ __pycache__/
 .vscode/
 *.swp
 .DS_Store
+
+# Paquets vendeur : peuvent contenir des certificats de tenant
+*.deb

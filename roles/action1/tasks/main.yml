@@ -1,0 +1,61 @@
+---
+- name: Check the agent package is available on the controller
+  ansible.builtin.stat:
+    path: "{{ action1_deb_src }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  register: action1_deb
+
+- name: Fail early when the package is missing
+  ansible.builtin.assert:
+    that: action1_deb.stat.exists
+    fail_msg: >-
+      Missing {{ action1_deb_src }} — copy the organisation .deb there.
+      It is deliberately not committed: it carries the tenant certificate.
+  run_once: true
+
+- name: Collect installed packages
+  ansible.builtin.package_facts:
+    manager: apt
+
+- name: Note the installed agent version
+  ansible.builtin.set_fact:
+    action1_installed: "{{ ansible_facts.packages[action1_package][0].version | default('absent') }}"
+
+- name: Install the agent dependencies
+  ansible.builtin.apt:
+    name: "{{ action1_dependencies }}"
+    state: present
+    update_cache: true
+    cache_valid_time: "{{ action1_apt_cache_valid_time }}"
+  when: action1_installed != action1_version
+
+- name: Copy the agent package
+  ansible.builtin.copy:
+    src: "{{ action1_deb_src }}"
+    dest: "{{ action1_deb_dest }}"
+    owner: root
+    group: root
+    mode: "0600"
+  when: action1_installed != action1_version
+
+- name: Install the agent
+  ansible.builtin.apt:
+    deb: "{{ action1_deb_dest }}"
+  when: action1_installed != action1_version
+
+- name: Remove the copied package
+  ansible.builtin.file:
+    path: "{{ action1_deb_dest }}"
+    state: absent
+
+- name: Enable and start the agent
+  ansible.builtin.service:
+    name: "{{ action1_service }}"
+    state: started
+    enabled: true
+
+- name: Report the agent state
+  ansible.builtin.debug:
+    msg: "action1-agent {{ action1_installed }} -> {{ action1_version }}"
